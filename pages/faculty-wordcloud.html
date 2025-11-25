@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Facultats i Escoles</title>
+<script src="../assets/js/head-loader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.1/src/wordcloud2.min.js"></script>
+</head>
+<body class="w3-light-grey">
+
+<!-- !PAGE CONTENT! -->
+<div class="w3-main" style="margin-left:300px;margin-top:43px;">
+
+  <!-- Header -->
+  <header class="w3-container" style="padding-top:22px">
+    <h5><b><i class="fa fa-university"></i> Termes ODS per centres</b></h5>
+  </header>
+
+  <div class="w3-container">
+    <h1>Termes ODS per centres</h1>
+    <p>Aquesta visualització mostra un núvol de paraules amb els termes relacionats amb els Objectius de Desenvolupament Sostenible (ODS) associats a cada Facultat i Escola de la Universitat Rovira i Virgili.</p>
+    <p>Els termes son dels conceptes detectats per un algoritme d'aprenentatge automàtic però, no necessàriament apareixen explicitats a les guies docents.</p>
+  </div>
+
+  <!-- Interactive Wordcloud -->
+  <div class="w3-container">
+    <div class="wordcloud-container">
+      <h2>Paraules clau per Facultat/Escola</h2>
+
+      <div class="w3-row">
+        <div class="w3-col m3 l2">
+          <select id="faculty-select" class="w3-select w3-border" style="max-width: 300px;">
+            <option value="">-- Selecciona una Facultat/Escola --</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-container">
+        <div class="filter-title">Filtres per contingut analitzat:</div>
+        <div class="filter-tabs">
+          <div class="filter-tab" data-json="faculties_features_data_descriptive.json">
+            Títol, descripció i continguts
+          </div>
+          <span class="filter-symbol">+</span>
+          <div class="filter-tab" data-json="faculties_features_data_competencial.json">
+            Competències i resultats d'aprenentatge
+          </div>
+          <span class="filter-symbol">+</span>
+          <div class="filter-tab" data-json="faculties_features_data_bibliographical.json">
+            Bibliografia
+          </div>
+          <span class="filter-symbol">=</span>
+          <div class="filter-tab active" data-json="faculties_features_data.json">
+            Guia docent completa
+          </div>
+        </div>
+      </div>
+
+      <div class="wordcloud-wrapper">
+        <canvas id="wordcloud"></canvas>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Wordcloud functionality
+const canvas = document.getElementById("wordcloud");
+const facultySelect = document.getElementById("faculty-select");
+let wordcloudInstance = null;
+let allFaculties = [];
+let currentDataFile = "faculties_features_data.json"; // Default file
+
+/**
+ * Resizes the canvas to fit its container while maintaining aspect ratio
+ * @returns {Object} The new width and height of the canvas
+ */
+function resizeCanvas() {
+  const container = document.querySelector('.wordcloud-wrapper');
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  
+  const canvasWidth = width * 0.95;
+  const canvasHeight = height * 0.95;
+  
+  const ratio = window.devicePixelRatio || 1;
+  
+  canvas.width = canvasWidth * ratio;
+  canvas.height = canvasHeight * ratio;
+  canvas.style.width = canvasWidth + 'px';
+  canvas.style.height = canvasHeight + 'px';
+  
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  
+  return { width: canvasWidth, height: canvasHeight };
+}
+
+/**
+ * Draws a word cloud based on the provided SDG data
+ * @param {Object} sdgs - The Sustainable Development Goals data to visualize
+ */
+function drawWordCloud(sdgs) {
+  if (!sdgs) return;
+  
+  // Prepare word list from SDG data
+  const wordList = Object.entries(sdgs)
+    .filter(([word, count]) => typeof count === 'number' && word.trim() !== '')
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 100);
+
+  const { width, height } = resizeCanvas();
+  
+  // Stop any existing wordcloud instance
+  if (wordcloudInstance) {
+    WordCloud.stop();
+  }
+  
+  // Calculate maximum frequency for scaling
+  const maxFrequency = wordList.length > 0 ? Math.max(...wordList.map(w => w[1])) : 1;
+
+  // Create new wordcloud instance
+  wordcloudInstance = WordCloud(canvas, {
+    list: wordList,
+    gridSize: Math.round(width * 0.005),
+    weightFactor: function(size) {
+      return (Math.pow(size, 0.7) / maxFrequency) * (width / 6);
+    },
+    fontFamily: 'Arial',
+    color: 'random-dark',
+    backgroundColor: '#fff',
+    rotateRatio: 0, 
+    drawOutOfBound: false,
+    shrinkToFit: true,
+    minSize: 10,
+    maxSize: 80,
+    origin: [width / 2, height / 2],
+    shape: 'square',
+    ellipticity: 0.6,
+    clearCanvas: true,
+    wait: 10
+  });
+}
+
+/**
+ * Loads faculty data from the specified JSON file
+ * @param {string} dataFile - The JSON file to load
+ */
+async function loadFacultyData(dataFile) {
+  try {
+    // Show loading state
+    facultySelect.disabled = true;
+    facultySelect.innerHTML = '<option value="">Carregant dades...</option>';
+    
+    // Load faculty features data for wordcloud
+    const featuresResponse = await fetch(`../data/${dataFile}`);
+    if (!featuresResponse.ok) throw new Error(`Error loading features: ${featuresResponse.status}`);
+    const featuresData = await featuresResponse.json();
+    
+    // Store faculty data globally
+    allFaculties = featuresData;
+    
+    // Get current selected faculty (if any)
+    const currentSelection = facultySelect.value;
+    
+    // Populate faculty dropdown selector
+    facultySelect.innerHTML = '<option value="">-- Selecciona una Facultat/Escola --</option>';
+    
+    featuresData.forEach((faculty, index) => {
+      if (faculty.faculty) {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = faculty.faculty;
+        facultySelect.appendChild(option);
+      }
+    });
+
+    // Restore selection if it exists in new data
+    if (currentSelection && featuresData[currentSelection]?.faculty) {
+      facultySelect.value = currentSelection;
+    } else {
+      // Default to first faculty (Architecture)
+      const architectureIndex = featuresData.findIndex(f => f.faculty && f.faculty.toLowerCase().includes('arquitectura'));
+      if (architectureIndex !== -1) {
+        facultySelect.value = architectureIndex;
+      } else if (featuresData.length > 0) {
+        facultySelect.value = 0;
+      }
+    }
+
+    // Display wordcloud for selected faculty
+    const selectedIndex = parseInt(facultySelect.value);
+    if (!isNaN(selectedIndex)) {
+      const selectedFaculty = featuresData[selectedIndex];
+      if (selectedFaculty && selectedFaculty.sdgs) {
+        drawWordCloud(selectedFaculty.sdgs);
+      }
+    }
+
+    // Re-enable select
+    facultySelect.disabled = false;
+
+  } catch (error) {
+    console.error('Error loading data:', error);
+    facultySelect.innerHTML = '<option value="">Error carregant dades</option>';
+    facultySelect.disabled = true;
+  }
+}
+
+// Initialize the page when DOM is loaded
+document.addEventListener('DOMContentLoaded', async function() {
+  // Set initial height for wordcloud container
+  const wordcloudWrapper = document.querySelector('.wordcloud-wrapper');
+  wordcloudWrapper.style.height = `${Math.min(window.innerHeight * 0.6, 600)}px`;
+  
+  // Load default data
+  await loadFacultyData(currentDataFile);
+
+  // Handle faculty selection changes
+  facultySelect.addEventListener("change", function() {
+    const selectedIndex = parseInt(this.value);
+    if (!isNaN(selectedIndex)) {
+      const selectedFaculty = allFaculties[selectedIndex];
+      if (selectedFaculty && selectedFaculty.sdgs) {
+        drawWordCloud(selectedFaculty.sdgs);
+      }
+    }
+  });
+
+  // Handle window resize events with debounce
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const selectedIndex = parseInt(facultySelect.value);
+      if (!isNaN(selectedIndex)) {
+        const container = document.querySelector('.wordcloud-wrapper');
+        container.style.height = `${Math.min(window.innerHeight * 0.6, 600)}px`;
+        
+        if (allFaculties[selectedIndex]?.sdgs) {
+          drawWordCloud(allFaculties[selectedIndex].sdgs);
+        }
+      }
+    }, 200);
+  });
+
+  // Handle filter tab clicks
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', async function() {
+      // Update active tab
+      filterTabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Get the JSON file to load
+      const jsonFile = this.getAttribute('data-json');
+      currentDataFile = jsonFile;
+      
+      // Load new data
+      await loadFacultyData(jsonFile);
+    });
+  });
+});
+</script>
+
+<script src="../assets/js/topbar-loader.js" defer></script>
+<script src="../assets/js/sidebar-loader.js" defer></script>
+<script src="../assets/js/footer-loader.js" defer></script>
+
+</body>
+</html>
