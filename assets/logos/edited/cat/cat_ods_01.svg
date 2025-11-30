@@ -25,18 +25,18 @@
      inkscape:pageopacity="0"
      inkscape:pagecheckerboard="1"
      inkscape:deskcolor="#505050"
-     inkscape:zoom="3.9545454"
-     inkscape:cx="60.436782"
-     inkscape:cy="49.689656"
+     inkscape:zoom="63.272726"
+     inkscape:cx="50.053162"
+     inkscape:cy="103.05388"
      inkscape:window-width="1920"
      inkscape:window-height="1001"
-     inkscape:window-x="2391"
+     inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
      inkscape:current-layer="Layer_1"
      showguides="true">
     <sodipodi:guide
-       position="46.087919,151.24433"
+       position="32.096145,69.52879"
        orientation="1,0"
        id="guide149"
        inkscape:locked="false" />
@@ -221,4 +221,8 @@
        id="tspan150"
        x="45.111919"
        y="45.793625">DE LA POBRESA</tspan></text>
+  <path
+     d="m 50.986442,103.61982 c 1.9,0 3.5,-1.6 3.5,-3.5 0,-1.899992 -1.6,-3.499992 -3.5,-3.499992 -1.9,0 -3.5,1.6 -3.5,3.499992 0,2 1.5,3.5 3.5,3.5 z"
+     style="fill:#ffffff"
+     id="path1-8" />
 </svg>

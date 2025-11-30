@@ -259,6 +259,37 @@
           assignatures més alineades amb els ODS.</p>
         </div>
 
+<div class="mermaid">
+flowchart TD
+    %% Classes de colors
+    classDef fase fill:#f9f,stroke:#333,stroke-width:2px,color:#000,font-weight:bold;
+    classDef process fill:#ffeb99,stroke:#333,stroke-width:1px,color:#000;
+    classDef data fill:#bbf,stroke:#333,stroke-width:1px,color:#000,font-style:italic;
+    classDef output fill:#bfb,stroke:#333,stroke-width:1px,color:#000;
+
+    %% FASE 1: Recopilació
+    A[📥 1. Recopilació de guies docents]:::fase --> 
+    A1[🔗 Obtenció d'enllaços i accés a guies docents]:::process
+    A1 --> A3{📑 Estàndard de la guia?}:::process
+    A3 -->|DocNet 93%| A4[🖥 Accés a iframe DocNet]:::process
+    A3 -->|GUIDO 7%| B
+    A4 --> B
+
+    %% FASE 2, 3 i 4: compactat vertical
+    B[📝 2. Processament i extracció de dades]:::fase --> B1[📊 Extracció del contingut de les guies docents]
+    B1 --> C[🔍 3. Anàlisi de termes ODS]:::fase
+    C --> C1["🌐 Traducció a l'anglès (LibreTranslate o Apertium)"]
+    C1 --> C2["🧮 Identificació dels ODS amb text2SDG (R)"]
+    C2 --> D[📊 4. Generació de visualitzacions i informes]:::fase
+
+    %% Sortida JSON i resultats finals en horitzontal per estalviar espai
+    D --> JSON[💾 JSON estructurat]:::data
+    JSON --> Report[📄 Informe final]:::output
+    JSON --> Web[🌐 Pàgina web interactiva]:::output
+
+    %% Reduir espai: fer que els nodes de sortida estiguin horitzontals
+    class JSON,Report,Web output
+</div>
 
 <script src="../assets/js/topbar-loader.js" defer></script>
 <script src="../assets/js/sidebar-loader.js" defer></script>

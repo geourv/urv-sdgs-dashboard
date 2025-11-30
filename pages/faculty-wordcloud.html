@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Facultats i Escoles</title>
+<title>Termes ODS per centres</title>
 <script src="../assets/js/head-loader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.1/src/wordcloud2.min.js"></script>
 </head>
@@ -12,7 +12,7 @@
 
   <!-- Header -->
   <header class="w3-container" style="padding-top:22px">
-    <h5><b><i class="fa fa-university"></i> Termes ODS per centres</b></h5>
+    <h5><b><i class="fa fa-eye"></i> Una primera ullada > Termes ODS per centres. Núvol de paraules</b></h5>
   </header>
 
   <div class="w3-container">
@@ -24,8 +24,7 @@
   <!-- Interactive Wordcloud -->
   <div class="w3-container">
     <div class="wordcloud-container">
-      <h2>Paraules clau per Facultat/Escola</h2>
-
+      <h2></h2>
       <div class="w3-row">
         <div class="w3-col m3 l2">
           <select id="faculty-select" class="w3-select w3-border" style="max-width: 300px;">
@@ -145,11 +144,18 @@ function drawWordCloud(sdgs) {
  * Loads faculty data from the specified JSON file
  * @param {string} dataFile - The JSON file to load
  */
+/**
+ * Loads faculty data from the specified JSON file
+ * @param {string} dataFile - The JSON file to load
+ */
 async function loadFacultyData(dataFile) {
   try {
     // Show loading state
     facultySelect.disabled = true;
-    facultySelect.innerHTML = '<option value="">Carregant dades...</option>';
+    
+    // Store current selection before loading new data
+    const currentSelection = facultySelect.value;
+    const currentFacultyName = facultySelect.options[facultySelect.selectedIndex]?.text;
     
     // Load faculty features data for wordcloud
     const featuresResponse = await fetch(`../data/${dataFile}`);
@@ -158,9 +164,6 @@ async function loadFacultyData(dataFile) {
     
     // Store faculty data globally
     allFaculties = featuresData;
-    
-    // Get current selected faculty (if any)
-    const currentSelection = facultySelect.value;
     
     // Populate faculty dropdown selector
     facultySelect.innerHTML = '<option value="">-- Selecciona una Facultat/Escola --</option>';
@@ -174,26 +177,30 @@ async function loadFacultyData(dataFile) {
       }
     });
 
-    // Restore selection if it exists in new data
-    if (currentSelection && featuresData[currentSelection]?.faculty) {
-      facultySelect.value = currentSelection;
-    } else {
-      // Default to first faculty (Architecture)
-      const architectureIndex = featuresData.findIndex(f => f.faculty && f.faculty.toLowerCase().includes('arquitectura'));
-      if (architectureIndex !== -1) {
-        facultySelect.value = architectureIndex;
-      } else if (featuresData.length > 0) {
-        facultySelect.value = 0;
-      }
+    // Try to restore previous selection by faculty name
+    let selectedIndex = -1;
+    if (currentFacultyName) {
+      selectedIndex = featuresData.findIndex(f => f.faculty === currentFacultyName);
     }
-
-    // Display wordcloud for selected faculty
-    const selectedIndex = parseInt(facultySelect.value);
-    if (!isNaN(selectedIndex)) {
+    
+    // If not found, use the stored index value (if valid)
+    if (selectedIndex === -1 && currentSelection && featuresData[currentSelection]?.faculty) {
+      selectedIndex = parseInt(currentSelection);
+    }
+    
+    // If still not found, don't default to Architecture - keep "Select a Faculty" option
+    if (selectedIndex !== -1) {
+      facultySelect.value = selectedIndex;
+      
+      // Display wordcloud for selected faculty
       const selectedFaculty = featuresData[selectedIndex];
       if (selectedFaculty && selectedFaculty.sdgs) {
         drawWordCloud(selectedFaculty.sdgs);
       }
+    } else {
+      // Clear the wordcloud if no valid selection
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     // Re-enable select
@@ -205,6 +212,7 @@ async function loadFacultyData(dataFile) {
     facultySelect.disabled = true;
   }
 }
+
 
 // Initialize the page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {

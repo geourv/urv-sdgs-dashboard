@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Facultats i Escoles</title>
+<title>Termes ODS per ensenyaments</title>
 <script src="../assets/js/head-loader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.1/src/wordcloud2.min.js"></script>
 </head>
@@ -12,19 +12,19 @@
 
   <!-- Header -->
   <header class="w3-container" style="padding-top:22px">
-    <h5><b><i class="fa fa-university"></i> Facultats i Escoles</b></h5>
+    <h5><b><i class="fa fa-eye"></i> Una primera ullada > Termes ODS per ensenyaments. Núvol de paraules </b></h5>
   </header>
 
   <div class="w3-container">
-    <h1>Facultats i Escoles de la Universitat Rovira i Virgili</h1>
-    <p>Aquesta pàgina mostra informació sobre totes les Facultats i Escoles de la URV i la seva alineació amb els Objectius de Desenvolupament Sostenible.</p>
+    <h1>Termes ODS per ensenyaments</h1>
+    <p>Aquesta visualització mostra un núvol de paraules amb els termes relacionats amb els Objectius de Desenvolupament Sostenible (ODS) associats a cada ensenyament de la Universitat Rovira i Virgili.</p>
+    <p>Els termes son dels conceptes detectats per un algoritme d'aprenentatge automàtic però, no necessàriament apareixen explicitats a les guies docents.</p>
   </div>
 
   <!-- Interactive Wordcloud -->
   <div class="w3-container">
     <div class="wordcloud-container">
-      <h2>Paraules clau per Facultat/Escola</h2>
-
+      <h2></h2>
       <div class="w3-row">
         <div class="w3-col m3 l2">
           <select id="degree-select" class="w3-select w3-border" style="max-width: 300px;">
@@ -140,6 +140,7 @@ function drawWordCloud(sdgs) {
   });
 }
 
+
 /**
  * Loads degree data from the specified JSON file
  * @param {string} dataFile - The JSON file to load
@@ -148,7 +149,10 @@ async function loadFacultyData(dataFile) {
   try {
     // Show loading state
     degreeSelect.disabled = true;
-    degreeSelect.innerHTML = '<option value="">Carregant dades...</option>';
+    
+    // Store current selection before loading new data
+    const currentSelection = degreeSelect.value;
+    const currentDegreeName = degreeSelect.options[degreeSelect.selectedIndex]?.text;
     
     // Load degree features data for wordcloud
     const featuresResponse = await fetch(`../data/${dataFile}`);
@@ -157,9 +161,6 @@ async function loadFacultyData(dataFile) {
     
     // Store degree data globally
     allFaculties = featuresData;
-    
-    // Get current selected degree (if any)
-    const currentSelection = degreeSelect.value;
     
     // Populate degree dropdown selector
     degreeSelect.innerHTML = '<option value="">-- Selecciona una Facultat/Escola --</option>';
@@ -173,26 +174,30 @@ async function loadFacultyData(dataFile) {
       }
     });
 
-    // Restore selection if it exists in new data
-    if (currentSelection && featuresData[currentSelection]?.degree) {
-      degreeSelect.value = currentSelection;
-    } else {
-      // Default to first degree (Architecture)
-      const architectureIndex = featuresData.findIndex(f => f.degree && f.degree.toLowerCase().includes('arquitectura'));
-      if (architectureIndex !== -1) {
-        degreeSelect.value = architectureIndex;
-      } else if (featuresData.length > 0) {
-        degreeSelect.value = 0;
-      }
+    // Try to restore previous selection by degree name
+    let selectedIndex = -1;
+    if (currentDegreeName) {
+      selectedIndex = featuresData.findIndex(f => f.degree === currentDegreeName);
     }
-
-    // Display wordcloud for selected degree
-    const selectedIndex = parseInt(degreeSelect.value);
-    if (!isNaN(selectedIndex)) {
+    
+    // If not found, use the stored index value (if valid)
+    if (selectedIndex === -1 && currentSelection && featuresData[currentSelection]?.degree) {
+      selectedIndex = parseInt(currentSelection);
+    }
+    
+    // If still not found, don't default to Architecture - keep "Select a Faculty" option
+    if (selectedIndex !== -1) {
+      degreeSelect.value = selectedIndex;
+      
+      // Display wordcloud for selected degree
       const selectedFaculty = featuresData[selectedIndex];
       if (selectedFaculty && selectedFaculty.sdgs) {
         drawWordCloud(selectedFaculty.sdgs);
       }
+    } else {
+      // Clear the wordcloud if no valid selection
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     // Re-enable select
@@ -204,7 +209,6 @@ async function loadFacultyData(dataFile) {
     degreeSelect.disabled = true;
   }
 }
-
 // Initialize the page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async function() {
   // Set initial height for wordcloud container
