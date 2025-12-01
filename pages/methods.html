@@ -57,24 +57,21 @@
     A1[🔗 Web-scraping de guies docents]:::process
     A1 --> A3{📑 Estàndard 
     de la guia?}:::process
-    A3 -->|DocNet 93%| A4[🖥 Accés a iframe DocNet]:::process
+    A3 -->|DOCnet 93%| A4[🖥 Accés a iframe DOCnet]:::process
     A3 -->|GUIDO 7%| B
     A4 --> B
 
-    %% FASE 2, 3 i 4: compactat vertical
+    %% FASE 2, 3 i 4: Processament, anàlisi i visualització
     B[📝 2. Processament i extracció de dades]:::fase --> B1[📊 Extracció del contingut de les guies docents]
     B1 --> C[🔍 3. Anàlisi de termes ODS]:::fase
     C --> C1["🌐 Traducció a l'anglès (LibreTranslate o Apertium)"]
     C1 --> C2["🧮 Identificació dels ODS amb text2SDG (R)"]
     C2 --> D[📊 4. Generació de visualitzacions i informes]:::fase
 
-    %% Sortida JSON i resultats finals en horitzontal per estalviar espai
+    %% Sortida JSON i resultats finals
     D --> JSON[💾 JSON estructurat]:::data
-    JSON --> Report[📄 Informe final]:::output
     JSON --> Web[🌐 Pàgina web interactiva]:::output
 
-    %% Reduir espai: fer que els nodes de sortida estiguin horitzontals
-    class JSON,Report,Web output
     </div>
     </div>
     <div class="w3-text-grey w3-italic">Elaboració propia</div>
@@ -83,7 +80,7 @@
   <ol>
   <!--1. Course Data Extraction Section -->
   <li>
-  <h4>Recopilar totes les guies docents de les assignatures de grau de la URV des de la web pública.</h4>
+  <h4>Recopilar les guies docents de les assignatures de grau i màster de la URV des de la web pública.</h4>
   <p>Per obtenir el contingut dels ensenyaments, cal extreure les dades de les guies docents 
     de les assignatures de l'ensenyament corresponent.
     Això s'ha aconseguit mitjançant múltiples processos de <i>webscrapping</i> - mitjançant l'eina 
@@ -102,19 +99,19 @@
   <!--3. Course Guide Management and Data Extraction Section -->
   <li>
   <h4>Processar les dades per extreure els textos rellevants (títol, descripció, competències, bibliografia, etc).</h4>
-  <p>La informació s'extreu en dos estàndards: <strong>DocNet</strong> (93% de les assignatures) i 
-    <strong>GUIDO</strong> (7% restants). DocNet és una aplicació web pensada perque el professorat 
+  <p>La informació s'extreu en dos estàndards: <strong>DOCnet</strong> i 
+    <strong>GUIDO</strong>. DOCnet és una aplicació web pensada perquè el professorat 
     pugui planificar l'assignatura seguint els paràmetres definits pel procés de Bolonya i realitzar-ne la guia docent. 
-    DocNet és l'estàndard anterior i temporal, ja que actualment s'està duent a terme una transició entre DocNet i 
-    la nova apliació anomenada GUIDO. 
-    Tot i així, DocNet és encara l'estàndard present en moltes guies docents. 
+    DOCnet és l'estàndard anterior i temporal, ja que actualment s'està duent a terme una migració de les guies docents
+    DOCnet a la nova apliació anomenada GUIDO. 
+    Tot i així, DOCnet és encara l'estàndard present en moltes guies docents. 
     GUIDO és el nou estàndard que ha d'incorporar-se properament a totes les guies docents, 
     tot i que solament el disposen els nous ensenyaments o ensenyaments renovats recentment.</p>
 
-  <p>Per accedir a les guies DocNet, ha estat necessari obtenir l’enllaç a l’iframe que les conté. 
+  <p>Per accedir a les guies DOCnet, ha estat necessari obtenir l’enllaç a l’iframe que les conté. 
     Un exemple d'aquest enllaç seria: 
-    <em><a href="https://guiadocent.urv.cat/docnet/guia_docent/assignatures/print/?centre=21&ensenyament=2123&assignatura=21234217&any_academic=2024_25&idioma=cat&modalitat=p" target="_blank">
-      Enllaç DocNet</a></em>.</p>
+    <em><a href="https://guiadocent.urv.cat/docnet/guia_docent/assignatures/print/?centre=21&ensenyament=2123&assignatura=21234114&any_academic=2025_26&idioma=cat" target="_blank">
+      Enllaç DOCnet</a></em>.</p>
 
   <p>En l'estàndard GUIDO, s'extreuen dades similars, amb la diferència que les competències 
     s'integren amb els resultats d’aprenentatge, i l'accés visual a les dades requereix accedir a 
@@ -232,7 +229,7 @@
 
     <h2>Dificultats i limitacions</h2>
 
-    <p>La variabilitat entre els estàndards DocNet i 
+    <p>La variabilitat entre els estàndards DOCnet i 
     GUIDO ha complicat l'extracció uniforme de dades, 
     especialment en la fase de mineria de dades
     o <i>web mining</i>. 
@@ -242,13 +239,13 @@
     Per una banda, la principal diferència és l'esctructura de la guia docent,
     ja que els continguts es distribueixen de manera diferent segons l'estàndard utilitzat.
     D'altra banda, també hi ha diferències en la manera d'accedir als continguts de les guies docents.
-    En concret, l'estàndard DocNet mostra els continguts en un <i>iframe</i>
-    l'enllaç del qual s'ha hagut d'extreure mitjançant un pas adicional 
+    En concret, l'estàndard DOCnet mostra els continguts en un <i>iframe</i>
+    l'enllaç del qual s'ha hagut d'extreure mitjançant un pas addicional 
     al procés d'extracció, mentre que l'estàndard GUIDO permet 
     l'accés i extracció directa de la informació.
     Una variació significativa és la redacció de competències i resultats d'aprenentatge,
-    ja que a l'estàndard GUIDO ambdos continguts s'agrupen a l'apartat
-    de resultats d'aprenentatge mentre que a l'estàndard DocNet, previ a GUIDO, 
+    ja que a l'estàndard GUIDO ambdós continguts s'agrupen a l'apartat
+    de resultats d'aprenentatge mentre que a l'estàndard DOCnet, previ a GUIDO, 
     aquesta informació rau en dos apartats diferents.</li></p>
 
     <div class="w3-center" style="display: flex; justify-content: center; gap: 40px; margin: 20px 0;">
@@ -276,7 +273,7 @@
   <p>Una altra dificultat detectada, ha estat la presència de dades incompletes o 
   mal formatejades. Aquesta situació ha requerit una revisió manual, afectant l'eficiència del procés. 
   Aquestes dades poden incloure caselles buides, caràcters estranys o referències mal espaiades, 
-  que haurien de ser revisades assignatura per assignatura per garantir la qualitat de l'anàlisi. 
+  que s’haurien de revisar per assignatura per garantir la qualitat de l'anàlisi. 
   Casos d'aquest tipus s'han donat especialment als continguts de referències bibliogràfiques o 
   competències i resultats d'aprenentatge.</li></p>
 
